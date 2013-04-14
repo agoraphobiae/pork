@@ -1,0 +1,23 @@
+TODO:
+
+new:
+[ ] implement Features
+    [ ] extend command parsing to support using their special functions
+    [ ] dynamic Place descriptions
+[ ] implement hunger?, health?
+[ ] implement a fighting system
+    [ ] implement npcs
+[ ] a Places parser for simpler map design/generation
+[ ] implement bags (items which hold items)
+[ ] companions?
+
+fix:
+[ ] item name collision between similar items (elvish sword and old sword)
+[ ] infinite inventory
+[ ] split pork.py into multiple meaningful modules
+
+
+far future:
+[ ] web interface
+[ ] multiplayer??
+[ ] achieve ambience
