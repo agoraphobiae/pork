@@ -97,20 +97,3 @@ class Weapon(Item):
 
     def __repr__(self):
         return "Weapon(%s, %s, %s, %s)"%(repr(self.name), repr(self.desc), repr(self.dmgamt), repr(self.weight))
-
-
-def genGameMap():
-    """Connects all the Places, this is a graph, but simpler than Command
-    Returns the starting location"""
-
-    startlocnext = {'e':"There is a wall there."}
-    startloc = Place("You are in a field. Swaying, golden grass surrounds you in all directions.",
-        items=[Weapon("old, rusty sword", "A simple sword", 2, weight=2)],
-        next=startlocnext)
-
-    field1next = {'s':startloc}
-    field1 = Place("You are in a field. Golden, swaying grass surrounds you in all directions.",
-        next=field1next)
-    startlocnext['n'] = field1
-
-    return startloc

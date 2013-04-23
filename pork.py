@@ -1,6 +1,7 @@
 from porkcmd import *
 from porkglobals import *
 from gameinfo import *
+from game import *
 
 class Player:
     """All of the functions that the player can interactively
