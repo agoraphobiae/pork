@@ -1,77 +1,6 @@
-WELCOME_MSG = """Welcome."""
-PROMPT = "> "
-
-DEBUG = True
-def debug(*args):
-    if DEBUG == True:
-        print("DEBUG: ", args)
-
-class Place:
-    """Each place is like a node in a graph
-    Places have relations to next places, and items[]
-    and people[]"""
-    def __init__(self, desc, items=[], next={}, features=[]):
-        # desc should be written in 2nd person: You are standing here
-        self.desc = desc
-        self.items = items
-        # next should be a dict with key values 'N' 'E' 'W' 'S' 'U' 'D'
-        self.next = next
-        self.features = features
-
-    def additem(self, item):
-        self.items.append(item)
-
-    def removeitem(self, item):
-        return self.items.pop(self.items.index(item))
-
-class Feature:
-    """Features are like doors or chests in Places,
-    and have special functionality which idk how ima make work.
-    They can be <examine>'d """
-    def __init__(self, name, desc):
-        pass
-
-
-class Item:
-    """Items contain information about themselves, but
-    information about them (held, place) is stored in Player
-    or Place"""
-
-    # make these derived classes?
-    PLAIN = "plain"
-    WEAPON = "weapon"
-    FOOD = "food"
-
-    def __init__(self, name, desc, itype=PLAIN):
-        """Items need to be understandable in English; a sword, the sword
-        distinctions need to be made. This will be done with 'adjectives'.
-        Only the last word will be treated as the 'name' of the object; the
-        words before it will be considered adjectives."""
-        self.name = name.split()[-1]
-        self.adjectives = name.split()[:-1]
-        self.desc = desc
-        self.itype = itype
-
-    @property
-    def stradj(self):
-        stradj = ""
-        for adj in self.adjectives:
-            stradj += adj + ' '
-        return stradj
-
-    @property
-    def specname(self):
-        return "The " + self.stradj + self.name
-
-    @property
-    def genname(self):
-        return "A " + self.stradj + self.name
-
-    def __str__(self):
-        return self.name
-
-    def __repr__(self):
-        return "Item(%s, %s, %s)"%(repr(self.name), repr(self.desc), repr(self.itype))
+from porkcmd import *
+from porkglobals import *
+from gameinfo import *
 
 class Player:
     """All of the functions that the player can interactively
@@ -79,6 +8,9 @@ class Player:
 
     TAKEMSG = "Took %s."
     PUTMSG = "Put %s down."
+    INVMAX = 25 #kg
+    INVMAXMSG = "You are carrying too much, you must drop something first."
+    DIRERRMSG = "You can't go that way."
 
     def __init__(self, place):
         self.name = ""
@@ -91,17 +23,36 @@ class Player:
         if len(direc) == 0:
             return "Move where?"
         direc = direc[0]
-        self.place = self.place.next[direc]
-        return self.place.desc
+        if direc in self.place.next:
+            if self.place.isNextPlace(direc):
+                self.place = self.place.next[direc]
+                return self.look()
+            else:
+                return self.place.next[direc]
+        else:
+            # really, each next dict should be made with a msg for nonvalid direcs
+            # but just in case.
+            return self.DIRERRMSG
 
-    def take(self, item):
-        # what if the place doesn't have that obj?
+    def take(self, *item):
+        """Appends item to inventory by removing it from self.place, checking
+        if the inventory can fit it first."""
+        if len(item) == 0:
+            return "Take what?"
+        item = item[0]
+        if item.weight + self.invweight > self.INVMAX:
+            return self.INVMAXMSG
         self.inventory.append(self.place.removeitem(item))
-        return Player.TAKEMSG%item.specname.lower()
+        return self.TAKEMSG%item.specname.lower()
 
-    def put(self, item):
+    def put(self, *item):
+        """Appends item into self.place, by popping it off the inventory."""
+        if len(item) == 0:
+            return "Drop what?"
+        item = item[0]
+        debug("Placing item down: ", item)
         self.place.additem(self.inventory.pop(self.inventory.index(item)))
-        return Player.PUTMSG%item.specname.lower()
+        return self.PUTMSG%item.specname.lower()
 
     def look(self): #add *info?
         # add support for "looking" up?
@@ -112,6 +63,7 @@ class Player:
         return retval.strip()
 
     def error(self, info):
+        debug("Error. Player is at: ", self.place.desc)
         return "Did not understand: " + str(info)
 
     def inv(self):
@@ -121,6 +73,13 @@ class Player:
         for i in self.inventory:
             retval += i.genname + '.\n'
         return retval.strip()
+
+    @property
+    def invweight(self):
+        weight = 0
+        for i in self.inventory:
+            weight += i.weight
+        return weight
 
     # was going to use this dictionary but realized useless
     # if the CommandGraph stores function info, we don't need
@@ -133,58 +92,11 @@ class Player:
     #     'put':put,
     #     'take':take}
 
-"""Alright. Commands will be parsed using a tree. I MEAN GRAPH
-Paths will be complete, valid commands.
-Each branch is a valid word following the current one.
-
-Once reaching the end leaves, the path defines the function
-which should be called.
-This means, while traveling down the tree, relevant information
-must be saved - so, each tree entry will have:
-    a name
-    a relevant piece of data (what object), if valid
-
-If the next word does not correspond to a valid branch,
-call error() with whatever information has be found so far.
-"""
-
-class CommandNode:
-    def __init__(self, names, data, nextnodes=[]):
-        self.nextnodes = nextnodes
-        # add support for dif names, like n=north
-        self.names = names
-        self.data = data
-
-    def moveTo(self, desirednext):
-        debug("Looking for ", desirednext)
-        for nextnode in self.nextnodes:
-            debug("nextnodes.names:", nextnode.names)
-            if desirednext in nextnode.names:
-                # is a valid node to move to
-                return nextnode
-        return None # did not find valid node
-
-    def __repr__(self):
-        return "CommandNode(%s, %s, %s)"%(repr(self.names), repr(self.data), repr(self.nextnodes))
-
-class DynCommandNode(CommandNode):
-    """Refreshes the nextnodes list everytime it is queried"""
-    def __init__(self, names, data, refreshf, refreshi, nextnodes=[]):
-        self.refreshf = refreshf
-        self.refreshi = refreshi # the info for refreshing, usually Player
-        CommandNode.__init__(self, names, data, nextnodes)
-
-    def moveTo(self, desirednext):
-        self.nextnodes = self.refreshf(self.refreshi)
-        debug("DynCmdNode refreshed nextnodes list.")
-        return CommandNode.moveTo(self, desirednext)
-    
 def genItemGraph(itemlist):
     """Returns a list of nodes with valid words to refer to items in 
     itemlist.
     Allows us to extend our CommandGraph with straight (single option)
     branches which allow for the use of adjectives"""
-    # add support for using "old sword" to refer to "rusty old sword"?
 
     def descendIntoItem(itemadjs, item):
         """Helper to make a straight (single option)
@@ -194,7 +106,7 @@ def genItemGraph(itemlist):
         return CommandNode([itemadjs[0]], None, nextnodes=[descendIntoItem(itemadjs[1:], item)])
 
     # allow user to call item by adjectiveless name
-    branches = [CommandNode(i.name, i) for i in itemlist]
+    branches = [CommandNode([i.name], i) for i in itemlist]
     for item in itemlist:
         branches.append(descendIntoItem(item.adjectives, item))
 
@@ -208,7 +120,7 @@ def genItemGraph(itemlist):
                 node.nextnodes.extend(othernode.nextnodes)
                 branches.remove(othernode)
 
-    debug("Inv graph:", branches)
+    debug("Item graph:", branches)
     return branches
 
 
@@ -238,8 +150,12 @@ def genCommandGraph(player):
         nextnodes=invnodesf(player.inventory))
     firstlvlcmds.append(putcmd)
 
+    # needed for proper refresh
+    # because if player.place changes
+    # player.place.items won't change accordingly.
+    takerefresh = lambda player: placeinodesf(player.place.items)
     takecmd = DynCommandNode(["take"], player.take,
-        placeinodesf, player.place.items,
+        takerefresh, player,
         nextnodes=placeinodesf(player.place.items))
     firstlvlcmds.append(takecmd)
 
@@ -294,17 +210,6 @@ def parseCommand(cmd, cmdg):
         i += 1
 
     return retdatad
-
-
-def genGameMap():
-    """Connects all the Places, this is a graph, but simpler than Command
-    Returns the starting location"""
-    startloc = Place("Starting location",
-        items=[Item("old, rusty sword", "A simple sword", itype=Item.WEAPON)],
-        next={'n':Place("north of startloc")})
-
-    return startloc
-
 
 
 def pork():

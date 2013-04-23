@@ -7,14 +7,18 @@ new:
 [ ] implement hunger?, health?
 [ ] implement a fighting system
     [ ] implement npcs
-[ ] a Places parser for simpler map design/generation
 [ ] implement bags (items which hold items)
 [ ] companions?
+[ ] add verb words ("swing") specific to items
 
 fix:
 [ ] item name collision between similar items (elvish sword and old sword)
-[ ] infinite inventory
-[ ] split pork.py into multiple meaningful modules
+[x] infinite inventory
+[x] split pork.py into multiple meaningful modules
+[x] going a direction not in the next places throws an error
+[x] just "take", "put", etc throws errors
+[x] "sw" can refer to "sword"
+[x] items you can pick up improperly updates
 
 
 far future:
