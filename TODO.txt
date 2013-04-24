@@ -10,6 +10,10 @@ new:
 [ ] implement bags (items which hold items)
 [ ] companions?
 [ ] add verb words ("swing") specific to items
+[ ] "examine" "search" "put down" "touch" "look at"
+[ ] more meaningful errors, better error handling ("pick sword", for example)
+[x] implement an exit
+[x] pick up, put down
 
 fix:
 [ ] item name collision between similar items (elvish sword and old sword)

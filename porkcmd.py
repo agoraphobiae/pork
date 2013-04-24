@@ -35,14 +35,21 @@ class CommandNode:
         return "CommandNode(%s, %s, %s)"%(repr(self.names), repr(self.data), repr(self.nextnodes))
 
 class DynCommandNode(CommandNode):
-    """Refreshes the nextnodes list everytime it is queried"""
+    """Refreshes the nextnodes list everytime it is queried, by running:
+    refreshf(refreshi), or if a tuple is supplied as the refresh info,
+    refreshf(*refreshi)
+    sets the self.nextnodes to the value returned."""
     def __init__(self, names, data, refreshf, refreshi, nextnodes=[]):
         self.refreshf = refreshf
         self.refreshi = refreshi # the info for refreshing, usually Player
         CommandNode.__init__(self, names, data, nextnodes)
 
     def moveTo(self, desirednext):
-        self.nextnodes = self.refreshf(self.refreshi)
+        if type(self.refreshi) == tuple:
+            # called with a suffix or something
+            self.nextnodes = self.refreshf(*self.refreshi)
+        else:
+            self.nextnodes = self.refreshf(self.refreshi)
         debug("DynCmdNode refreshed nextnodes list.")
         return CommandNode.moveTo(self, desirednext)
     

@@ -3,6 +3,9 @@ from porkglobals import *
 from gameinfo import *
 from game import *
 
+from time import sleep
+import sys
+
 class Player:
     """All of the functions that the player can interactively
     run."""
@@ -12,6 +15,8 @@ class Player:
     INVMAX = 25 #kg
     INVMAXMSG = "You are carrying too much, you must drop something first."
     DIRERRMSG = "You can't go that way."
+    EXITMSGSTART = "Your eyes slowly close"
+    EXITMSGEND = "Goodnight.\n\n"
 
     def __init__(self, place):
         self.name = ""
@@ -46,7 +51,7 @@ class Player:
         self.inventory.append(self.place.removeitem(item))
         return self.TAKEMSG%item.specname.lower()
 
-    def put(self, *item):
+    def drop(self, *item):
         """Appends item into self.place, by popping it off the inventory."""
         if len(item) == 0:
             return "Drop what?"
@@ -75,6 +80,17 @@ class Player:
             retval += i.genname + '.\n'
         return retval.strip()
 
+    def exit(self, *args):
+        global EXIT
+        EXIT = True
+        print(self.EXITMSGSTART, end='')
+        for _ in range(3):
+            sys.stdout.flush()
+            sleep(0.5)
+            print('.', end='')
+        print()
+        return self.EXITMSGEND
+
     @property
     def invweight(self):
         weight = 0
@@ -93,8 +109,11 @@ class Player:
     #     'put':put,
     #     'take':take}
 
-def genItemGraph(itemlist):
-    """Returns a list of nodes with valid words to refer to items in 
+def genItemGraph(itemlist, suffix=None):
+    """Takes a list of items and a suffix, which is a word which
+    must come after the item name to form a complete command.
+    i.e. suffix="down" -> "put sword" invalid, "put sword down" valid
+    Returns a list of nodes with valid words to refer to items in 
     itemlist.
     Allows us to extend our CommandGraph with straight (single option)
     branches which allow for the use of adjectives"""
@@ -103,11 +122,17 @@ def genItemGraph(itemlist):
         """Helper to make a straight (single option)
         branch of graph for a single item"""
         if len(itemadjs) == 0:
+            if suffix:
+                debug("Making item node with suffix: ", suffix)
+                return CommandNode([item.name], None, nextnodes=[CommandNode([suffix], item)])
             return CommandNode([item.name], item)
         return CommandNode([itemadjs[0]], None, nextnodes=[descendIntoItem(itemadjs[1:], item)])
 
     # allow user to call item by adjectiveless name
-    branches = [CommandNode([i.name], i) for i in itemlist]
+    if suffix:
+        branches = [CommandNode([i.name], None, nextnodes=[CommandNode([suffix], i)]) for i in itemlist]
+    else:
+        branches = [CommandNode([i.name], i) for i in itemlist]
     for item in itemlist:
         branches.append(descendIntoItem(item.adjectives, item))
 
@@ -132,8 +157,6 @@ def genCommandGraph(player):
     directionslist = [ ['n', "north"], ['e', "east"], ['s', "south"], ['w', "west"], ['u', "up"], ['d', "down"] ]
     firstlvlcmds = []
     # refresh functions, since the inv and place is dynamically changing
-    invnodesf = genItemGraph # make sure to pass player.inventory as refreshi
-    placeinodesf = genItemGraph # make sure to pass player.place.items as refreshi
 
 
     """ Zeroth level command """
@@ -146,22 +169,52 @@ def genCommandGraph(player):
     invcmd = CommandNode(["inv", "inventory"], player.inv)
     firstlvlcmds.append(invcmd)
 
-    putcmd = DynCommandNode(["put", "drop"], player.put, 
-        invnodesf, player.inventory,
-        nextnodes=invnodesf(player.inventory))
-    firstlvlcmds.append(putcmd)
+    # player.inventory is a pointer to the current Player obj's inv
+    # but since player is static, this is not a problem.. yet
+    dropcmd = DynCommandNode(["drop"], player.drop, 
+        genItemGraph, player.inventory,
+        nextnodes=genItemGraph(player.inventory))
+    firstlvlcmds.append(dropcmd)
 
     # needed for proper refresh
     # because if player.place changes
     # player.place.items won't change accordingly.
-    takerefresh = lambda player: placeinodesf(player.place.items)
+    takerefresh = lambda player: genItemGraph(player.place.items)
     takecmd = DynCommandNode(["take"], player.take,
         takerefresh, player,
-        nextnodes=placeinodesf(player.place.items))
+        nextnodes=genItemGraph(player.place.items))
     firstlvlcmds.append(takecmd)
+
+    def pickrefresh(player, suffix):
+        l = genItemGraph(player.place.items, suffix)
+        l.append(CommandNode([suffix], None, nextnodes=genItemGraph(player.place.items)))
+        return l
+    # supports "pick item up", "pick up item"
+    pickupcmd = DynCommandNode(["pick"], player.take,
+        pickrefresh, (player, "up"),
+        nextnodes=[
+        DynCommandNode(["up"], None, takerefresh, player, nextnodes=genItemGraph(player.place.items)),
+        pickrefresh(player, "up")
+        ])
+    firstlvlcmds.append(pickupcmd)
+
+    def putrefresh(player, suffix):
+        l = genItemGraph(player.inventory, suffix)
+        l.append(CommandNode([suffix], None, nextnodes=genItemGraph(player.inventory)))
+        return l
+    putcmd = DynCommandNode(["put"], player.drop,
+        putrefresh, (player, "down"),
+        nextnodes=[
+        DynCommandNode(["down"], None, genItemGraph, player.inventory, nextnodes=genItemGraph(player.inventory)),
+        putrefresh(player, "down")
+        ])
+    firstlvlcmds.append(putcmd)
 
     lookcmd = CommandNode(["look"], player.look)
     firstlvlcmds.append(lookcmd)
+
+    exitcmd = CommandNode(["exit"], player.exit)
+    firstlvlcmds.append(exitcmd)
 
     return zerothnode
 
@@ -189,6 +242,7 @@ def parseCommand(cmd, cmdg):
         elif i == cmd[-1]:
             # last node cant be empty; this happens when items adjs
             # are used without the item name at the end, e.g. "take old"
+            debug("Last commandnode found to be empty. Calling error.")
             return {cmdg.data:[i]}
 
     debug("parseCommand returndata: ", retdata)
@@ -223,7 +277,7 @@ def pork():
     mainGameLoop(player, cmdg)
 
 def mainGameLoop(player, cmdg):
-    while 1:
+    while not EXIT:
         print()
 
         usrinput = input(PROMPT).strip()

@@ -19,4 +19,10 @@ def genGameMap():
         next=field1next)
     startlocnext['n'] = field1
 
+    field2next = {'n':startloc}
+    field2 = Place("You are in a field with golden, swaying grass in all directions.",
+        next=field2next)
+    startlocnext['s'] = field2
+
+
     return startloc
