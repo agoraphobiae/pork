@@ -137,10 +137,9 @@ def genItemGraph(itemlist, suffix=None):
         branches.append(descendIntoItem(item.adjectives, item))
 
     # reuse of adjectives may cause collisions!
-    # this is really not memory efficient lol.
+    # also, multiple swords causes confusion
     for node in branches[:]:
-        brancheswithoutcurnode = branches[:]
-        brancheswithoutcurnode.remove(node)
+        brancheswithoutcurnode = [x for x in branches if x != node]
         for othernode in brancheswithoutcurnode:
             if node.names == othernode.names:
                 node.nextnodes.extend(othernode.nextnodes)

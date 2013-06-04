@@ -31,8 +31,61 @@ class CommandNode:
                 return nextnode
         return None # did not find valid node
 
+    def visualize(self):
+        if len(self.nextnodes) == 0:
+            return self.names[0]
+        retval = ""
+        for node in self.nextnodes:
+            retval += node.visualize() + ' '
+        retval = self.names[0] + '-'*(len(retval)-len(self.names[0])) + '\n' + retval
+
     def __repr__(self):
-        return "CommandNode(%s, %s, %s)"%(repr(self.names), repr(self.data), repr(self.nextnodes))
+        """This only has doctests/docstring because it has
+        weird infinite recursion problems, which I think
+        come from repr()ing CommandNodes inside self.nextnodes
+
+        >>> node1 = CommandNode(["repr"], 10, nextnodes=["repr"])
+        >>> node1
+        CommandNode(['repr'], 10, nextnodes=['repr'])
+        >>> node2 = CommandNode(['now for a neg test'], -1, nextnodes=[node1])
+        >>> node2
+        CommandNode(['now for a neg test'], -1, nextnodes=[CommandNode(['repr'], 10, nextnodes=['repr'])])
+        >>> node3n = []; node3 = CommandNode(['break already'], 2, nextnodes=node3n)
+        >>> node4 = CommandNode(['inf loop'], 10, nextnodes=[node3]); node3n.append(node4)
+        >>> node3
+        CommandNode(['break already'], 2, nextnodes=[CommandNode(['inf loop'], 10, nextnodes=[...])])
+        """
+        return "CommandNode(%s, %s, nextnodes=%s)"%(repr(self.names), repr(self.data), repr(self.nextnodes))
+
+    def __eq__(self, other):
+        """A CommandNode is equal to another CommandNode if the
+        list of names for each are equal, the data they contain
+        is equal, and the lists of valid nextnodes is equal.
+
+        >>> node1 = CommandNode(["equal"], 4, nextnodes=["equal"])
+        >>> node2 = CommandNode(["equal"], 4, nextnodes=["equal"])
+        >>> node1 == node2
+        True
+        >>> node3 = CommandNode("equal", 4, nextnodes=["equal"]) #not equal
+        >>> node2 == node3
+        False
+        >>> node4 = CommandNode(["equal"], 5, nextnodes=["equal"]) #not equal
+        >>> node4 == node2
+        False
+        >>> node5 = CommandNode(["equal"], 4, nextnodes=["equal", "not"])
+        >>> node5 == node1
+        False
+        """
+        # # Robert Huang CS61A disc
+        # if self.names != other.names:
+        #     return False
+        # if len(self.nextnodes) != len(other.nextnodes):
+        #     return False
+
+        return isinstance(other, type(self)) and self.names == other.names and self.data == other.data and self.nextnodes == other.nextnodes
+
+    def __ne__(self, other):
+        return not self.__eq__(other)
 
 class DynCommandNode(CommandNode):
     """Refreshes the nextnodes list everytime it is queried, by running:
