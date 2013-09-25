@@ -4,6 +4,7 @@ new:
 [ ] implement Features
     [ ] extend command parsing to support using their special functions
     [ ] dynamic Place descriptions
+    [ ] containers e.g. chests
 [ ] implement hunger?, health?
 [ ] implement a fighting system
     [ ] implement npcs
@@ -14,9 +15,12 @@ new:
 [ ] more meaningful errors, better error handling ("pick sword", for example)
 [x] implement an exit
 [x] pick up, put down
+[ ] add doors, locked doors
+[ ] save system
 
 fix:
 [ ] item name collision between similar items (elvish sword and old sword)
+    [ ] CommandNode __eq__
 [x] infinite inventory
 [x] split pork.py into multiple meaningful modules
 [x] going a direction not in the next places throws an error

@@ -1,7 +1,8 @@
+# jesus h christ that namespacing
 from porkcmd import *
 from porkglobals import *
 from gameinfo import *
-from game import *
+#from game import *
 
 from time import sleep
 import sys
@@ -83,12 +84,16 @@ class Player:
     def exit(self, *args):
         global EXIT
         EXIT = True
-        print(self.EXITMSGSTART, end='')
-        for _ in range(3):
+        # print(self.EXITMSGSTART, end='')
+        print self.EXITMSGSTART,
+        # for _ in range(3):
+        for _ in xrange(3):
             sys.stdout.flush()
             sleep(0.5)
-            print('.', end='')
-        print()
+            # print('.', end='')
+            sys.stdout.write('.')
+        # print()
+        print
         return self.EXITMSGEND
 
     @property
@@ -212,7 +217,7 @@ def genCommandGraph(player):
     lookcmd = CommandNode(["look"], player.look)
     firstlvlcmds.append(lookcmd)
 
-    exitcmd = CommandNode(["exit"], player.exit)
+    exitcmd = CommandNode(["exit", "leave"], player.exit)
     firstlvlcmds.append(exitcmd)
 
     return zerothnode
@@ -269,24 +274,37 @@ def parseCommand(cmd, cmdg):
 def pork():
     startloc = genGameMap()
     player = Player(startloc)
-    print(WELCOME_MSG)
-    print(player.look())
+    # print(WELCOME_MSG)
+    # print(player.look())
+    print WELCOME_MSG
+    print player.look()
     cmdg = genCommandGraph(player)
 
     mainGameLoop(player, cmdg)
 
 def mainGameLoop(player, cmdg):
     while not EXIT:
-        print()
+        # print()
+        print
 
-        usrinput = input(PROMPT).strip()
+        try:
+            # usrinput = input(PROMPT).strip()
+            usrinput = raw_input(PROMPT).strip()
+        except EOFError as e:
+            # ^D ends the game
+            usrinput = ""
+            # print(player.exit())
+            print player.exit()
+
         if usrinput != "":
             # parseCommand's return value still in design debate
             cmdinfo = parseCommand(usrinput, cmdg)
             debug("Command info: ", cmdinfo)
             for i in cmdinfo.items():
                 debug("Ran function:", i)
-                print( i[0](*i[1]) )
+                print i[0](*i[1]) 
+                # print( i[0](*i[1]) )
+                # jesus h christ that readability
 
 
 if __name__ == "__main__":
