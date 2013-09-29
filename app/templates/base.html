@@ -5,7 +5,7 @@
   <meta name="description" content="">
   <meta name="author" content="">
 
-  <title>Berkeley Research and Development</title>
+  <title>pork</title>
 
   <link href="{{ url_for('static', filename='common.css') }}" rel="stylesheet" />
 
@@ -16,16 +16,18 @@
   <!--
   <link rel="stylesheet" type="text/css" media="all" href="css/bootstrap.min.css">
   <link rel="stylesheet" type="text/css" media="all" href="css/global.css">
-  <script type="text/javascript" src="https://ajax.googleapis.com/ajax/libs/jquery/1.9.1/jquery.min.js"></script>
-  <script type="text/javascript" language="javascript" charset="utf-8" src="js/bootstrap.min.js"></script>
   -->
+  <script type="text/javascript" src="https://ajax.googleapis.com/ajax/libs/jquery/1.9.1/jquery.min.js"></script>
+
+  <script src="{{ url_for('static', filename='modernizr.js') }}"></script>
+  <script src="{{ url_for('static', filename='dynpage.js') }}"></script>
 </head>
 
 
 <body>
   <div id="wrap">
 
-    <!-- Static navbar -->
+    <!-- Static navbar
     <div class="navbar">
       <div class="container">
         <button type="button" class="navbar-toggle" data-toggle="collapse" data-target=".nav-collapse">
@@ -57,18 +59,18 @@
             <li><a href="/navbar-static-top/">Static top</a></li>
             <li><a href="/navbar-fixed-top/">Fixed top</a></li>
           </ul>
-        </div><!--/.nav-collapse -->
+        </div>
       </div>
-    </div>
+    </div>-->
 
-    <!-- Main component for a primary marketing message or call to action -->
+    <!-- Main component for a primary marketing message or call to action
     <div class="jumbotron">
       <h1>Navbar example</h1>
       <p>This example is a quick exercise to illustrate how the default, static navbar and fixed to top navbar work. It includes the responsive CSS and HTML, so it also adapts to your viewport and device.</p>
       <p>
         <a class="btn btn-large btn-primary" href="http://getbootstrap.com/components/#navbar">View navbar docs &raquo;</a>
       </p>
-    </div>
+    </div>-->
 
     <div class="container">
       {% with msgs = get_flashed_messages() %}
@@ -85,7 +87,11 @@
         <h1>Berkeley RND</h1>
       </div>
       
+      <section id="main-content">
+        <div id="#contents">
       {% block content %}{% endblock %}
+        </div>
+      </section>
 
     </div>
 
@@ -94,8 +100,10 @@
 
   <div id="footer">
     <div class="container">
-      <p class="text-muted credit">A test design for allen and kevin.
-        <small>Website code structured with some bootstrappin'</small></p>
+      <form id="cmd" action="">
+        <input id="cmdi" type="text">
+        <input type="submit" style="position: absolute; left: -9999px;">
+      </form>
     </div>
   </div>
 

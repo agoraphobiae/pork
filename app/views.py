@@ -49,7 +49,7 @@ def playcmd(command):
     user = {'nickname': 'agoraphobiae'}
     msgs = [
         {
-            'body':'this a test',
+            'body':command,
             'body':'this is where the game output goes.'
         }]
 
