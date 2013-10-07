@@ -2,6 +2,7 @@
 
 #KL
 *.DS_STORE
+venv
 
 # C extensions
 *.so
