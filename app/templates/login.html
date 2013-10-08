@@ -1,11 +1,5 @@
 {% extends "base.html" %}
 {% block content %}
-{% if login %}
-<form action="" method="post">
-    <p><input type=text name=username>
-    <p><input type=submit value=Login>
-</form>
-{% endif %}
 <h1>pork | {{user.nickname}}</h1>
 {% for msg in msgs %}
 <div><p>{{msg.body}}</p></div>

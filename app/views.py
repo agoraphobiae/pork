@@ -1,7 +1,7 @@
 # what each page will look like
 
 from app import app
-from flask import render_template, flash, redirect
+from flask import render_template, flash, redirect, session, request, url_for, escape
 # from forms import LoginForm
 
 from game import ham
@@ -30,7 +30,11 @@ def index():
 
 @app.route('/play')
 def play():
-    user = {'nickname': 'agoraphobiae'}
+    if 'username' in session:
+        user = {'nickname': escape(session['username'])}
+    else:
+        user = {'nickname': 'agoraphobiae'}
+
     msgs = [
         {
             'body':'this a test'
@@ -59,6 +63,34 @@ def playcmd(command):
         user = user,
         msgs = msgs)
 
+
+# session management for gameplay
+@app.route('/login', methods=['GET', 'POST'])
+def login():
+    # goddammit dummy vars
+    user = {'nickname': 'agoraphobiae'}
+    msgs = [
+        {
+            'body':'command',
+            'body':'this is where the game output goes.'
+        }]
+    if request.method == 'POST':
+        session['username'] = request.form['username']
+        return redirect(url_for('index'))
+    return render_template("game.html",
+        user = user,
+        msgs = msgs,
+        login = True)
+
+@app.route('/logout')
+def logout():
+    # remove the username from the session if it's there
+    session.pop('username', None)
+    return redirect(url_for('index'))
+
+# random shit please change
+# ty wordpress
+app.secret_key = "v.]0SM8_i/66]=[jszHs0?Nc+#CpK,L{heEPfMouTJam<{e_>pR>]baad*,Wz{om"
 
 # @app.route('/login', methods=['GET', 'POST'])
 # def login():
