@@ -88,8 +88,8 @@ class Player:
         EXIT = True
         print(self.EXITMSGSTART, end='')
         #print self.EXITMSGSTART,
-        # for _ in range(3):
-        for _ in xrange(3):
+        for _ in range(3):
+        #for _ in xrange(3):
             sys.stdout.flush()
             sleep(0.5)
             print('.', end='')

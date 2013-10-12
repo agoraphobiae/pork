@@ -22,7 +22,7 @@ class Place:
         return self.items.pop(self.items.index(item))
 
     def isNextPlace(self, direc):
-        return type(self.next[direc]) == Place
+        return isinstance(self.next[direc], Place)
 
     def __str__(self):
         return self.desc

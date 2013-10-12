@@ -1,5 +1,7 @@
 TODO:
 
+need issue tracking.
+
 new:
 [ ] implement Features
     [ ] extend command parsing to support using their special functions
@@ -27,6 +29,7 @@ fix:
 [x] just "take", "put", etc throws errors
 [x] "sw" can refer to "sword"
 [x] items you can pick up improperly updates
+[x] python2 causes player.move to update wrong, probably other things broken too
 
 
 far future:
