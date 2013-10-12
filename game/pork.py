@@ -71,6 +71,12 @@ class Player:
             retval += 'There is ' + item.genname.lower() + ' here. \n'
         return retval.strip()
 
+    def examine(self, *feature):
+        if len(feature) == 0:
+            return "Examine what?"
+        feature = feature[0]
+        return feature.desc
+
     def error(self, info):
         debug("Error. Player is at: ", self.place.desc)
         return "Did not understand: " + str(info)
@@ -116,6 +122,8 @@ class Player:
     #     'put':put,
     #     'take':take}
 
+# really, this should be genAdjectiveableGraph, but eh. 
+# refactoring is eh in sublime
 def genItemGraph(itemlist, suffix=None):
     """Takes a list of items and a suffix, which is a word which
     must come after the item name to form a complete command.
@@ -218,6 +226,13 @@ def genCommandGraph(player):
 
     lookcmd = CommandNode(["look"], player.look)
     firstlvlcmds.append(lookcmd)
+
+    # is this concatenation safe? is it memory intensive? we may never know
+    examinerefresh = lambda player: genItemGraph(player.place.features + player.place.items + player.inventory)
+    examinecmd = DynCommandNode(["examine", "inspect"], player.examine,
+        examinerefresh, player,
+        nextnodes=genItemGraph(player.place.features + player.place.items + player.inventory))
+    firstlvlcmds.append(examinecmd)
 
     exitcmd = CommandNode(["exit", "leave"], player.exit)
     firstlvlcmds.append(exitcmd)

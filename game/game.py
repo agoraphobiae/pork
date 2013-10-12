@@ -1,6 +1,13 @@
 from gameinfo import *
 from porkglobals import *
 
+def genGameMap():
+    """This is an "abstract function" to hold this docstring and information. 
+    A GameMap function defines Places and connects all the Places it defines in 
+    a graph, but simpler graph than CommandGraph. It simply uses Place.nextnodes.
+    
+    A GameMap function returns the starting location."""
+
 def testGameMap():
     """ ***TEST CASES*** """
     # testing item adj/name collision
@@ -16,13 +23,10 @@ def testGameMap():
     return startloc
 
 
-def genGameMap():
-    """Connects all the Places, this is a graph, but simpler than Command
-    Returns the starting location"""
-
+def goldenfieldMap():
     # python objs are pointers, putting an object in two places on accident
     # would make some weird behavior
-    shittystartersword = Weapon("old, rusty sword", "A simple sword", 2, weight=2)
+    shittystartersword = Weapon("old, rusty sword", "A simple sword, obviously aged and covered in rust.", 2, weight=2)
     
     startlocnext = {'e':"There is a wall there."}
     startloc = Place("You are in a field. Swaying, golden grass surrounds you in all directions.",
@@ -39,8 +43,21 @@ def genGameMap():
         next=field2next)
     startlocnext['s'] = field2
 
+    # wait why the hell am i not just doing Place.next = {}
+    aSecretRoomNext = {'u':startloc}
+    aSecretRoom = Place(("You find yourself in a secret room. The walls glare down at you, but otherwise the room is quiet. There "
+        "is a painting on the wall in front of you, flanked by two statues of what appear to be kneeling warriors."),
+        next=aSecretRoomNext)
+    warriorStatue = Feature("warrior statue", ("A statue of a kneeling warrior. He faces down, with one hand on the hilt of his sheathed sword and "
+        "the other in a fist."))
+    painting = Feature("painting", "A painting of a bowl of fruit. A note attached to it says, do not to this.")
+    aSecretRoom.features = [warriorStatue, painting]
+    startlocnext['d'] = aSecretRoom
 
     return startloc
 
 if DEBUG:
     genGameMap = testGameMap
+
+# ghetto map choosing
+genGameMap = goldenfieldMap
