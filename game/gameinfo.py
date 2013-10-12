@@ -30,20 +30,13 @@ class Place:
     def __repr__(self):
         return "Place(%s, %s, %s, %s)"%(repr(self.desc), repr(self.items), repr(self.next), repr(self.features))
 
-class Feature:
-    """Features are like doors or chests in Places,
-    and have special functionality which idk how ima make work.
-    They can be <examine>'d """
+
+class Adjectiveable:
+    """God what a gross name. Adjs are things that need to be understood
+    in an English way, with adjectives. We need the data set up to support
+    generating the proper command graph with the adjectives."""
+    
     def __init__(self, name, desc):
-        pass
-
-
-class Item:
-    """Items contain information about themselves, but
-    information about them (held, place) is stored in Player
-    or Place"""
-
-    def __init__(self, name, desc, weight=2):
         """Items need to be understandable in English; a sword, the sword
         distinctions need to be made. This will be done with 'adjectives'.
         Only the last word will be treated as the 'name' of the object; the
@@ -51,7 +44,6 @@ class Item:
         self.name = name.split()[-1]
         self.adjectives = name.split()[:-1]
         self.desc = desc
-        self.weight = weight
 
     @property
     def stradj(self):
@@ -70,6 +62,19 @@ class Item:
 
     def __str__(self):
         return self.name
+
+    def __repr__(self):
+        return "Adjectiveable(%s, %s)"%(repr(self.name), repr(self.desc))
+
+
+class Item(Adjectiveable):
+    """Items contain information about themselves, but
+    information about them (held, place) is stored in Player
+    or Place"""
+
+    def __init__(self, name, desc, weight=2):
+        self.weight = weight
+        Adjectiveable.__init__(self, name, desc)
 
     def __repr__(self):
         return "Item(%s, %s, %s)"%(repr(self.name), repr(self.desc), repr(self.weight))
@@ -97,3 +102,11 @@ class Weapon(Item):
 
     def __repr__(self):
         return "Weapon(%s, %s, %s, %s)"%(repr(self.name), repr(self.desc), repr(self.dmgamt), repr(self.weight))
+
+
+class Feature(Adjectiveable):
+    """Features are like doors or chests in Places,
+    and have special functionality which idk how ima make work.
+    They can be <examine>'d """
+    def __init__(self, name, desc):
+        Adjectiveable.__init__(self, name, desc)
