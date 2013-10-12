@@ -98,7 +98,7 @@ class DynCommandNode(CommandNode):
         CommandNode.__init__(self, names, data, nextnodes)
 
     def moveTo(self, desirednext):
-        if type(self.refreshi) == tuple:
+        if isinstance(self.refreshi, tuple):
             # called with a suffix or something
             self.nextnodes = self.refreshf(*self.refreshi)
         else:

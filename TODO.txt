@@ -19,6 +19,7 @@ new:
 [x] pick up, put down
 [ ] add doors, locked doors
 [ ] save system
+[ ] "examine my " <invitem>
 
 fix:
 [ ] item name collision between similar items (elvish sword and old sword)
