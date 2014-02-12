@@ -77,6 +77,16 @@ class Player:
         feature = feature[0]
         return feature.desc
 
+    def open(self, *feature):
+        if len(feature) == 0:
+            return "Open what?"
+        feature = feature[0]
+        if isinstance(feature, Container):
+            feature.open()
+        else:
+            # make more container specific
+            return "You can't open that."
+
     def error(self, info):
         debug("Error. Player is at: ", self.place.desc)
         return "Did not understand: " + str(info)
@@ -123,7 +133,7 @@ class Player:
     #     'take':take}
 
 # really, this should be genAdjectiveableGraph, but eh. 
-# refactoring is eh in sublime
+# refactoring is eh in sublime #excuses
 def genItemGraph(itemlist, suffix=None):
     """Takes a list of items and a suffix, which is a word which
     must come after the item name to form a complete command.
@@ -224,7 +234,7 @@ def genCommandGraph(player):
         ])
     firstlvlcmds.append(putcmd)
 
-    lookcmd = CommandNode(["look"], player.look)
+    lookcmd = CommandNode(["look", "ls", "ll"], player.look)
     firstlvlcmds.append(lookcmd)
 
     # is this concatenation safe? is it memory intensive? we may never know
@@ -234,7 +244,15 @@ def genCommandGraph(player):
         nextnodes=genItemGraph(player.place.features + player.place.items + player.inventory))
     firstlvlcmds.append(examinecmd)
 
-    exitcmd = CommandNode(["exit", "leave"], player.exit)
+    # we're just gonna let the user try to open any Feature
+    openrefresh = lambda player: genItemGraph(player.place.features)
+    opencmd = DynCommandNode(["open"], player.open,
+        openrefresh, player,
+        nextnodes=genItemGraph(player.place.features))
+    firstlvlcmds.append(opencmd)
+
+
+    exitcmd = CommandNode(["exit", "leave", "sleep"], player.exit)
     firstlvlcmds.append(exitcmd)
 
     return zerothnode

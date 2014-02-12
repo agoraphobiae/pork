@@ -110,3 +110,13 @@ class Feature(Adjectiveable):
     They can be <examine>'d """
     def __init__(self, name, desc):
         Adjectiveable.__init__(self, name, desc)
+
+class Container(Feature):
+    """Containers are Features that can contain items, which can be
+    <open>'d and emptied."""
+    def __init__(self, name, desc, items=[]):
+        self.items = items
+        Adjectiveable.__init__(self, name, desc)
+
+    
+

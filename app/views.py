@@ -7,8 +7,8 @@ from flask import render_template, flash, redirect, session, request, url_for, e
 from game import ham
 
 # want saves to persist
-session.permanent = True
-app.permanent_session_lifetime = timedelta(365)
+# session.permanent = True
+# app.permanent_session_lifetime = timedelta(365)
 # erm i guess we're using flask-login now
 
 @app.route('/')
